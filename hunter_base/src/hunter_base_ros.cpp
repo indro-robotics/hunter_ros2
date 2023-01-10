@@ -26,6 +26,7 @@ HunterBaseRos::HunterBaseRos(std::string node_name)
 
   this->declare_parameter("simulated_robot", false);
   this->declare_parameter("control_rate", 50);
+  this->get_parameter_or<bool>("battery_status", battery_status_, true);
 
   LoadParameters();
 }
@@ -52,6 +53,7 @@ void HunterBaseRos::LoadParameters() {
   std::cout << "- simulated robot: " << std::boolalpha << simulated_robot_
             << std::endl;
   std::cout << "- sim control rate: " << sim_control_rate_ << std::endl;
+  std::cout << "- battery status: " << std::boolalpha << battery_status_ << std::endl;
   std::cout << "----------------------------" << std::endl;
 }
 
@@ -134,6 +136,7 @@ void HunterBaseRos::Run() {
     while (keep_running_) {
       messenger->PublishStateToROS();
       // robot_->EnableCommandedMode();
+      if (battery_status_) messenger->PublishBatteryStatus();
       rclcpp::spin_some(shared_from_this());
       rate.sleep();
     // }

@@ -26,6 +26,8 @@ def generate_launch_description():
                                                    description='Whether running with simulator')
     sim_control_rate_arg = DeclareLaunchArgument('control_rate', default_value='50',
                                                  description='Simulation control loop update rate')
+    sim_battery_status_arg = DeclareLaunchArgument('battery_status', default_value='true',
+                                                    description='Whether to publish battery status')
     
     hunter_base_node = launch_ros.actions.Node(
         package='hunter_base',
@@ -40,6 +42,7 @@ def generate_launch_description():
                 'odom_topic_name': launch.substitutions.LaunchConfiguration('odom_topic_name'),
                 'simulated_robot': launch.substitutions.LaunchConfiguration('simulated_robot'),
                 'control_rate': launch.substitutions.LaunchConfiguration('control_rate'),
+                'battery_status': launch.substitutions.LaunchConfiguration('battery_status')
         }])
 
     return LaunchDescription([
@@ -50,5 +53,7 @@ def generate_launch_description():
         odom_topic_arg,
         simulated_robot_arg,
         sim_control_rate_arg,
+        sim_battery_status_arg,
         hunter_base_node
+
     ])

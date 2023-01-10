@@ -38,6 +38,7 @@ class HunterBaseRos : public rclcpp::Node {
 
   bool simulated_robot_ = false;
   int sim_control_rate_ = 50;
+  bool battery_status_ = true;
   
   int version=2;
   bool is_omni_ = false;
