@@ -1,0 +1,16 @@
+{
+    "ros.distro": "humble",
+    "python.autoComplete.extraPaths": [
+        "/home/liamd/humble_ws/install/tracer_description/lib/python3.10/site-packages",
+        "/home/liamd/humble_ws/install/ros_robot/lib/python3.10/site-packages",
+        "/home/liamd/humble_ws/install/ros_intermediate/lib/python3.10/site-packages",
+        "/home/liamd/humble_ws/install/ros_basics/lib/python3.10/site-packages",
+        "/home/liamd/humble_ws/install/hunter_se_description/lib/python3.10/site-packages",
+        "/home/liamd/humble_ws/install/deliverybot_gazebo/lib/python3.10/site-packages",
+        "/home/liamd/humble_ws/install/deliverybot_description/lib/python3.10/site-packages",
+        "/home/liamd/humble_ws/install/deliverybot_control/lib/python3.10/site-packages",
+        "/home/liamd/humble_ws/install/basic_interfaces/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}

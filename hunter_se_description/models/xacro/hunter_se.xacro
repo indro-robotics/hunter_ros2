@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+
+<robot name="hunter_se" xmlns:xacro="http://wiki.ros.org/xacro">
+
+    <xacro:include filename="$(find hunter_se_description)/models/xacro/hunter_steer.xacro" />
+    <xacro:include filename="$(find hunter_se_description)/models/xacro/hunter_motors.xacro" />
+    <xacro:include filename="$(find hunter_se_description)/models/xacro/hunter_gazebo.xacro" />
+
+
+    <xacro:property name="base_x_size" value="0.800" />
+    <xacro:property name="base_y_size" value="0.350" />
+    <xacro:property name="base_z_size" value="0.200" />
+
+
+    <xacro:property name="steering_axle_x_offset" value="0.3422" />
+    <xacro:property name="steering_axle_y_offset" value="0.20" />
+    <xacro:property name="steering_axle_z_offset" value="-0.145" />
+    <xacro:property name="steering_wheel_z_offset" value="0" />
+    <xacro:property name="steering_wheel_y_offset" value="0.070" />
+    <xacro:property name="max_steer" value="0.69" />
+    <xacro:property name="wheelbase" value="0.55" />
+    <xacro:property name="wheel_separation" value="0.53" />
+
+    <xacro:property name="motor_axle_x_offset" value="-0.2078" />
+    <xacro:property name="motor_axle_y_offset" value="0.270" />
+    <xacro:property name="motor_axle_z_offset" value="-0.1495" />
+
+    <xacro:property name="wheel_length" value="0.10" />
+    <xacro:property name="wheel_radius" value="0.14" />
+
+    <xacro:property name="robot_namespace" value="/hunter_se" />
+
+    <gazebo>
+        <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+            <namespace>${robot_namespace}</namespace>
+            <parameters>$(find hunter_se_description)/models/config/controllers.yaml</parameters>
+        </plugin>
+    </gazebo>
+
+    <link name="base_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh
+                    filename="package://hunter_se_description/models/meshes/hunter_body.dae" />
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 -0.05" rpy="0 0 0" />
+            <geometry>
+                <box size="${base_x_size} ${base_y_size} ${base_z_size}" />
+            </geometry>
+        </collision>
+    </link>
+    <link name="inertial_link">
+        <inertial>
+            <mass value="24.73" />
+            <origin xyz="0.015 0.00 0.0" />
+            <inertia ixx="0.12321"
+                ixy="2.512E-06"
+                ixz="4.801E-03"
+                iyy="0.219144"
+                iyz="1.033E-05"
+                izz="0.3136" />
+        </inertial>
+    </link>
+    <joint name="inertial_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="base_link" />
+        <child link="inertial_link" />
+    </joint>
+
+    <xacro:hunter_steer name="front_right" reflect="-1" rotation="${pi/2}" />
+    <xacro:hunter_steer name="front_left" reflect="1" rotation="${-pi/2}" />
+
+    <link name="center_steer_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="${0.04}" length="${0.06}" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.5" />
+            <origin xyz="0 0 0" />
+            <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01" />
+        </inertial>
+    </link>
+    <joint name="center_steer_joint" type="revolute">
+        <parent link="base_link" />
+        <child link="center_steer_link" />
+        <origin
+            xyz="${steering_axle_x_offset} 0 ${steering_axle_z_offset}"
+            rpy="0 0 0" />
+        <axis xyz="0 0 1" rpy="0 0 0" />
+        <limit lower="${-max_steer}" upper="${max_steer}" effort="10" velocity="5" />
+    </joint>
+
+    <xacro:hunter_motors name="rear_right" reflect="-1" rotation="${-pi/2}" />
+    <xacro:hunter_motors name="rear_left" reflect="1" rotation="${pi/2}" />
+
+    <xacro:ackermann_control />
+
+     <ros2_control name="GazeboSystem" type="system">
+        <hardware>
+            <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+            <robotNamespace>${robot_namespace}</robotNamespace>
+        </hardware>
+        <xacro:steering_control
+            name="front_right"
+            steer_limlow="${-max_steer}"
+            steer_limhigh="${max_steer}" />
+        <xacro:steering_control
+            name="front_left"
+            steer_limlow="${-max_steer}"
+            steer_limhigh="${max_steer}" />
+        <xacro:velocity_control
+            name="rear_right"
+            velocity_limlow="-7.5"
+            velocity_limhigh="10.0" />
+        <xacro:velocity_control
+            name="rear_left"
+            velocity_limlow="-7.5"
+            velocity_limhigh="10.0" />
+        <xacro:velocity_control
+            name="front_right"
+            velocity_limlow="-7.5"
+            velocity_limhigh="10.0" />
+        <xacro:velocity_control
+            name="front_left"
+            velocity_limlow="-7.5"
+            velocity_limhigh="10.0" />
+    </ros2_control>
+</robot>

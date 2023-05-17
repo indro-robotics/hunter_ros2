@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="hunter_steer">
+    <xacro:macro name="hunter_motors"
+        params="name reflect rotation">
+        <link name="${name}_wheel_link">
+            <visual>
+                <origin xyz="0 ${reflect * -0.065} 0" rpy="0 0 ${rotation}" />
+                <geometry>
+                    <mesh filename="package://hunter_se_description/models/meshes/rear_wheel.dae" />
+                </geometry>
+            </visual>
+            <collision>
+                <origin xyz="0 0 0" rpy="1.57 0 0" />
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_length}" />
+                </geometry>
+            </collision>
+            <inertial>
+                <mass value="0.5" />
+                <origin xyz="0 0 0" />
+                <inertia ixx="0.022" ixy="0" ixz="0" iyy="0.022" iyz="0" izz="0.0378" />
+            </inertial>
+        </link>
+        <joint name="${name}_wheel_joint" type="continuous">
+            <parent link="base_link" />
+            <child link="${name}_wheel_link" />
+            <origin
+                xyz="${motor_axle_x_offset} ${reflect * motor_axle_y_offset} ${motor_axle_z_offset}" />
+            <axis xyz="0 1 0" />
+        </joint>
+        <gazebo reference="${name}_wheel_link">
+            <mu1 value="1.0" />
+            <mu2 value="2.0" />
+            <kp value="10000000.0" />
+            <kd value="1.0" />
+            <fdir1 value="0 1 0" />
+        </gazebo>
+    </xacro:macro>
+</robot>
