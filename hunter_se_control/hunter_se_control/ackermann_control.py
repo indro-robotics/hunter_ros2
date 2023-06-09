@@ -101,14 +101,12 @@ class HunterSEControlNode(Node):
         global vel_msg
         global joy_msg
         if joy_msg.linear.x != 0 and joy_msg.angular.z == 0:
-            print('Got here')
-            print(joy_msg.linear.x)
             steer_msg = joy_msg.angular.z
             self.vel[:] = joy_msg.linear.x
             vel_array = Float64MultiArray(data=self.vel)
             self.pub_vel_.publish(vel_array)
             self.vel[:] = 0
-
+            print('The wheel velocities are as follows:\n\nFL_Wheel: {:2.4}    FR_Wheel: {:2.4}\nBL_Wheel: {:2.4}    BR_Wheel: {:2.4}'.format(self.vel[3], self.vel[2], self.vel[1], self.vel[0]))
         if joy_msg.linear.x != 0 and joy_msg.angular.z != 0:
             steer_msg = joy_msg.angular.z
             vel_rear_in, vel_front_in = self.vel_in(steer_msg, joy_msg.linear.x)

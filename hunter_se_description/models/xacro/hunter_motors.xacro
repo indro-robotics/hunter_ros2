@@ -11,18 +11,15 @@
                 </geometry>
             </visual>
             <collision>
-                <!-- <origin xyz="0 0 0" rpy="1.57 0 0" /> -->
                 <origin xyz="0 ${reflect * -0.065} 0" rpy="0 0 ${rotation}" />
                 <geometry>
                     <mesh filename="package://hunter_se_description/models/meshes/rear_wheel.dae" />
-                    <!-- <cylinder radius="${wheel_radius}" length="${wheel_length}" /> -->
                 </geometry>
             </collision>
             <inertial>
                 <mass value="1.0" />
                 <origin xyz="0 0 0" />
                 <inertia ixx="0.006864" ixy="0.0" ixz="0.0" iyy="0.012106" iyz="0.0" izz="0.006864" />
-                <!-- <inertia ixx="0.22" ixy="0.02" ixz="0.02" iyy="0.22" iyz="0.02" izz="0.378" /> -->
             </inertial>
             <surface>
                 <friction>

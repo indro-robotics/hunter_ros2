@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-
 <robot xmlns:xacro="http://ros.org/wiki/xacro" name="hunter_steer">
     <xacro:macro name="hunter_steer"
         params="name reflect rotation">
@@ -21,7 +20,7 @@
             <inertial>
                 <mass value="0.25" />
                 <origin xyz="0 0 0" />
-                <inertia ixx="0.000105" ixy="0.0" ixz="0.0" iyy="0.00002" iyz="0.0" izz="0.000105" />
+                <inertia ixx="0.000474" ixy="0.0" ixz="0.0" iyy="0.000474" iyz="0.0" izz="0.000625" />
             </inertial>
         </link>
         <link name="${name}_wheel_link">
@@ -32,17 +31,14 @@
                 </geometry>
             </visual>
             <collision>
-                <!-- <origin xyz="0 0 0" rpy="1.57 0 0" /> -->
                 <origin xyz="0 0 0" rpy="0 0 ${rotation}" />
                 <geometry>
                     <mesh filename="package://hunter_se_description/models/meshes/front_wheel.dae" />
-                    <!-- <cylinder radius="${wheel_radius}" length="${wheel_length}" /> -->
                 </geometry>
             </collision>
             <inertial>
                 <mass value="1.0" />
                 <origin xyz="0 0 0" />
-                <!-- <inertia ixx="0.22" ixy="0.01" ixz="0.01" iyy="0.22" iyz="0.01" izz="0.378" /> -->
                 <inertia ixx="0.006864" ixy="0.0" ixz="0.0" iyy="0.012106" iyz="0.0" izz="0.006864" />
             </inertial>
             <surface>
@@ -75,7 +71,6 @@
             <child link="${name}_wheel_link" />
             <origin xyz="0 ${reflect * steering_wheel_y_offset} ${steering_wheel_z_offset}" />
             <axis xyz="0 1 0" rpy="0 0 0" />
-            <!-- <dynamics damping="0.0" friction="2.0" /> -->
         </joint>
     </xacro:macro>
 </robot>

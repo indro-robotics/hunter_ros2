@@ -128,6 +128,6 @@ def generate_launch_description():
 
     # Control Robot
     ld.add_action(joy_node)
-    #ld.add_action(ackermann_control_node)
+    ld.add_action(ackermann_control_node)
 
     return ld

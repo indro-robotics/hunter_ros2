@@ -80,6 +80,7 @@
                 </plugin>
                 <always_on>true</always_on>
                 <update_rate>100</update_rate>
+                <initial_orientation_as_reference>True</initial_orientation_as_reference>
                 <imu>
                     <angular_velocity>
                         <x>

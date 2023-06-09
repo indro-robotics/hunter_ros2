@@ -55,7 +55,6 @@
         <inertial>
             <mass value="38" />
             <origin xyz="0.050 0.00 -0.075" />
-            <!-- <inertia ixx="2.0533" ixy="0.0" ixz="0.0" iyy="2.56993" iyz="0.0" izz="0.69606" /> -->
             <inertia ixx="0.65" ixy="0.0" ixz="0.0" iyy="2.75" iyz="0.0" izz="3.0" />
         </inertial>
     </link>
@@ -65,21 +64,13 @@
         <parent link="base_footprint" />
         <child link="base_link" />
     </joint>
-
     <xacro:hunter_steer name="front_right" reflect="-1" rotation="${pi/2}" />
     <xacro:hunter_steer name="front_left" reflect="1" rotation="${-pi/2}" />
-
     <link name="center_steer_link">
-        <!-- <collision>
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <geometry>
-                <cylinder radius="${0.04}" length="${0.06}" />
-            </geometry>
-        </collision> -->
         <inertial>
             <mass value="0.25" />
             <origin xyz="0 0 0" rpy="0 0 0" />
-            <inertia ixx="0.000105" ixy="0.0" ixz="0.0" iyy="0.00002" iyz="0.0" izz="0.000105" />
+            <inertia ixx="0.000474" ixy="0.0" ixz="0.0" iyy="0.000474" iyz="0.0" izz="0.000625" />
         </inertial>
     </link>
     <joint name="center_steer_joint" type="revolute">
@@ -95,7 +86,7 @@
     <xacro:hunter_motors name="rear_right" reflect="-1" rotation="${-pi/2}" />
     <xacro:hunter_motors name="rear_left" reflect="1" rotation="${pi/2}" />
 
-    <!-- <xacro:ackermann_odometry /> -->
+    <xacro:ackermann_odometry />
     <xacro:imu name="IMU" parent="base_link" />
 
     <ros2_control name="GazeboSystem" type="system">
