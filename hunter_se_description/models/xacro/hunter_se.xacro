@@ -46,44 +46,40 @@
             </geometry>
         </visual>
         <collision>
-            <origin xyz="0 0 -0.05" rpy="0 0 0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <box size="${base_x_size} ${base_y_size} ${base_z_size}" />
+                <mesh
+                    filename="package://hunter_se_description/models/meshes/hunter_body.dae" />
             </geometry>
         </collision>
-    </link>
-    <link name="inertial_link">
         <inertial>
-            <mass value="24.73" />
-            <origin xyz="0.015 0.00 0.0" />
-            <inertia ixx="0.12321"
-                ixy="2.512E-06"
-                ixz="4.801E-03"
-                iyy="0.219144"
-                iyz="1.033E-05"
-                izz="0.3136" />
+            <mass value="38" />
+            <origin xyz="0.050 0.00 -0.075" />
+            <!-- <inertia ixx="2.0533" ixy="0.0" ixz="0.0" iyy="2.56993" iyz="0.0" izz="0.69606" /> -->
+            <inertia ixx="0.65" ixy="0.0" ixz="0.0" iyy="2.75" iyz="0.0" izz="3.0" />
         </inertial>
     </link>
-    <joint name="inertial_joint" type="fixed">
-        <origin xyz="0 0 0" rpy="0 0 0" />
-        <parent link="base_link" />
-        <child link="inertial_link" />
+    <link name="base_footprint"/>
+    <joint name="base_joint" type="fixed">
+        <origin xyz="0 0 0.250" rpy="0 0 0" />
+        <parent link="base_footprint" />
+        <child link="base_link" />
     </joint>
 
     <xacro:hunter_steer name="front_right" reflect="-1" rotation="${pi/2}" />
     <xacro:hunter_steer name="front_left" reflect="1" rotation="${-pi/2}" />
 
-    <!-- <link name="center_steer_link">
-        <collision>
+    <link name="center_steer_link">
+        <!-- <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
                 <cylinder radius="${0.04}" length="${0.06}" />
             </geometry>
-        </collision>
+        </collision> -->
         <inertial>
-            <mass value="0.5" />
-            <origin xyz="0 0 0" />
-            <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01" />
+            <mass value="0.25" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="0.000105" ixy="0.0" ixz="0.0" iyy="0.00002" iyz="0.0" izz="0.000105" />
         </inertial>
     </link>
     <joint name="center_steer_joint" type="revolute">
@@ -92,21 +88,25 @@
         <origin
             xyz="${steering_axle_x_offset} 0 ${steering_axle_z_offset}"
             rpy="0 0 0" />
-        <axis xyz="0 0 1" rpy="0 0 0" />
-        <limit lower="${-max_steer}" upper="${max_steer}" effort="10" velocity="5" />
-    </joint> -->
+        <axis xyz="0 0 1" />
+        <limit lower="${-max_steer}" upper="${max_steer}" effort="100" velocity="5.0" />
+    </joint>
 
     <xacro:hunter_motors name="rear_right" reflect="-1" rotation="${-pi/2}" />
     <xacro:hunter_motors name="rear_left" reflect="1" rotation="${pi/2}" />
 
-    <xacro:ackermann_odometry />
+    <!-- <xacro:ackermann_odometry /> -->
     <xacro:imu name="IMU" parent="base_link" />
 
-     <ros2_control name="GazeboSystem" type="system">
+    <ros2_control name="GazeboSystem" type="system">
         <hardware>
             <plugin>gazebo_ros2_control/GazeboSystem</plugin>
             <robotNamespace>${robot_namespace}</robotNamespace>
         </hardware>
+        <xacro:steering_control
+            name="center"
+            steer_limlow="${-max_steer}"
+            steer_limhigh="${max_steer}" />
         <xacro:steering_control
             name="front_right"
             steer_limlow="${-max_steer}"

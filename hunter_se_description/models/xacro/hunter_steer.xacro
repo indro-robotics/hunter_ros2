@@ -14,45 +14,49 @@
             <collision>
                 <origin xyz="0 0 0" rpy="0 0 0" />
                 <geometry>
-                    <cylinder radius="${0.04}" length="${0.06}" />
+                    <mesh
+                        filename="package://hunter_se_description/models/meshes/${name}_steer_link.dae" />
                 </geometry>
             </collision>
             <inertial>
-                <mass value="0.5" />
+                <mass value="0.25" />
                 <origin xyz="0 0 0" />
-                <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01" />
+                <inertia ixx="0.000105" ixy="0.0" ixz="0.0" iyy="0.00002" iyz="0.0" izz="0.000105" />
             </inertial>
         </link>
         <link name="${name}_wheel_link">
             <visual>
-                <origin xyz="0 0 0.015" rpy="0 0 ${rotation}" />
+                <origin xyz="0 0 0" rpy="0 0 ${rotation}" />
                 <geometry>
                     <mesh filename="package://hunter_se_description/models/meshes/front_wheel.dae" />
                 </geometry>
             </visual>
             <collision>
-                <origin xyz="0 0 0" rpy="1.57 0 0" />
+                <!-- <origin xyz="0 0 0" rpy="1.57 0 0" /> -->
+                <origin xyz="0 0 0" rpy="0 0 ${rotation}" />
                 <geometry>
-                    <cylinder radius="${wheel_radius}" length="${wheel_length}" />
+                    <mesh filename="package://hunter_se_description/models/meshes/front_wheel.dae" />
+                    <!-- <cylinder radius="${wheel_radius}" length="${wheel_length}" /> -->
                 </geometry>
             </collision>
             <inertial>
-                <mass value="0.5" />
+                <mass value="1.0" />
                 <origin xyz="0 0 0" />
-                <inertia ixx="0.022" ixy="0" ixz="0" iyy="0.022" iyz="0" izz="0.0378" />
+                <!-- <inertia ixx="0.22" ixy="0.01" ixz="0.01" iyy="0.22" iyz="0.01" izz="0.378" /> -->
+                <inertia ixx="0.006864" ixy="0.0" ixz="0.0" iyy="0.012106" iyz="0.0" izz="0.006864" />
             </inertial>
             <surface>
                 <friction>
                     <ode>
-                        <mu>0.7</mu>
-                        <mu2>0.7</mu2>
+                        <mu>1.0</mu>
+                        <mu2>1.0</mu2>
                     </ode>
                 </friction>
             </surface>
         </link>
         <gazebo reference="${name}_wheel_link">
             <mu1 value="1.0" />
-            <mu2 value="2.0" />
+            <mu2 value="1.0" />
             <kp value="10000000.0" />
             <kd value="1.0" />
             <fdir1 value="0 1 0" />
@@ -64,7 +68,7 @@
                 xyz="${steering_axle_x_offset} ${reflect * steering_axle_y_offset} ${steering_axle_z_offset}"
                 rpy="0 0 0" />
             <axis xyz="0 0 1" rpy="0 0 0" />
-            <limit lower="${-max_steer}" upper="${max_steer}" effort="10" velocity="4" />
+            <limit lower="${-max_steer}" upper="${max_steer}" effort="100" velocity="4" />
         </joint>
         <joint name="${name}_wheel_joint" type="continuous">
             <parent link="${name}_steer_link" />

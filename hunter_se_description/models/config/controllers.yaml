@@ -17,6 +17,7 @@
       joints:
         - front_right_steer_joint
         - front_left_steer_joint
+        - center_steer_joint
       interface_name: position
       command_interfaces:
         - position

@@ -28,6 +28,8 @@ class HunterSEControlNode(Node):
         #Declasring variables
         self.base_x_size = 0.800
         self.base_y_size = 0.350
+        self.wheelbase = 0.550
+        self.wheelseparation = 0.270
 
         #Initializing messages:
         joy_msg.linear.x = float(0)
@@ -36,9 +38,9 @@ class HunterSEControlNode(Node):
 
         self.vel_msg_prev = 0.0
         self.steer_msg_prev = 0.0
-        self.steer_pos = np.array([0, 0], float)  # FR, FL
-        self.vel = np.array([0, 0, 0, 0], float)  # RR, RL, FL, FR
-        self.steer_pos_prev = np.array([0, 0], float)  # FR, FL
+        self.steer_pos = np.array([0, 0, 0], float)  # FR, FL, CENT
+        self.vel = np.array([0, 0, 0, 0], float)  # RR, RL, FR, FL
+        self.steer_pos_prev = np.array([0, 0, 0], float)  # FR, FL, CENT
 
         # Creating Publishers
         self.pub_vel_ = self.create_publisher(
@@ -72,29 +74,88 @@ class HunterSEControlNode(Node):
         :return: ackermann steering angle of inner wheel theta_out
         """
         return float(math.atan((self.base_x_size*math.tan(delta_ack))/(self.base_x_size - 0.5*self.base_y_size*math.tan(delta_ack))))
-
+    def vel_out(self,delta_ack, cmd_vel):
+        """
+        Determines the outer wheel velocities (front and rear) for a no slip ackermann system
+        :param delta_ack: goal steering angle of virtual center wheel
+        :param cmd_vel: goal linear velocity of car
+        :return: vel_front_out , vel_rear_out
+        """
+        R_icr = self.wheelbase * math.tan(math.pi/2 - self.theta_out(delta_ack)) - self.wheelseparation
+        vel_rear_out = cmd_vel * (self.wheelbase*math.tan(math.pi/2 - self.theta_out(delta_ack)))/ R_icr
+        vel_front_out = cmd_vel * (math.sqrt((self.wheelbase*math.tan(math.pi/2-self.theta_out(delta_ack)))**2 + self.wheelbase**2))/R_icr
+        return vel_rear_out, vel_front_out
+    
+    def vel_in(self,delta_ack,cmd_vel):
+        """
+        Determines the inner wheel velocities (front and rear) for a no slip ackermann system
+        :param delta_ack: goal steering angle of virtual center wheel
+        :param cmd_vel: goal linear velocity of car
+        :return: vel_front_in , vel_rear_in
+        """
+        R_icr = self.wheelbase * math.tan(math.pi/2 - self.theta_in(delta_ack)) + self.wheelseparation
+        vel_rear_in = cmd_vel * (self.wheelbase*math.tan(math.pi/2 - self.theta_in(delta_ack)))/ R_icr
+        vel_front_in = cmd_vel * (math.sqrt((self.wheelbase*math.tan(math.pi/2-self.theta_in(delta_ack)))**2 + self.wheelbase**2))/R_icr
+        return vel_rear_in, vel_front_in
     def timer_callback(self):
         global vel_msg
         global joy_msg
-
-        if joy_msg.linear.x != 0 or joy_msg.angular.z != 0:
+        if joy_msg.linear.x != 0 and joy_msg.angular.z == 0:
+            print('Got here')
+            print(joy_msg.linear.x)
+            steer_msg = joy_msg.angular.z
             self.vel[:] = joy_msg.linear.x
             vel_array = Float64MultiArray(data=self.vel)
             self.pub_vel_.publish(vel_array)
             self.vel[:] = 0
-        else:
-            self.vel[:] = vel_msg.linear.x
+
+        if joy_msg.linear.x != 0 and joy_msg.angular.z != 0:
+            steer_msg = joy_msg.angular.z
+            vel_rear_in, vel_front_in = self.vel_in(steer_msg, joy_msg.linear.x)
+            vel_rear_out, vel_front_out = self.vel_out(steer_msg, joy_msg.linear.x)
+            if steer_msg > 0: #Turning right
+                self.vel[0] = vel_rear_out
+                self.vel[1] = vel_rear_in
+                self.vel[3] = 0.90 * vel_front_in
+                self.vel[2] = 0.90 * vel_front_out
+            if steer_msg < 0:
+                self.vel[0] = vel_rear_out
+                self.vel[1] = vel_rear_in
+                self.vel[3] = -0.90 * vel_front_in
+                self.vel[2] = -0.90 * vel_front_out
+            print('The wheel velocities are as follows:\n\nFL_Wheel: {:2.4}    FR_Wheel: {:2.4}\nBL_Wheel: {:2.4}    BR_Wheel: {:2.4}'.format(self.vel[3], self.vel[2], self.vel[1], self.vel[0]))
             vel_array = Float64MultiArray(data=self.vel)
             self.pub_vel_.publish(vel_array)
             self.vel[:] = 0
+        if joy_msg.linear.x == 0:
+            self.vel[:] = joy_msg.linear.x
+            vel_array = Float64MultiArray(data=self.vel)
+            self.pub_vel_.publish(vel_array)
+            self.vel[:] = 0
+
+
+            
+            # RR, RL, FR, FL
+
+
+            # FR, FL, CENT
+
+            # GREATER THAN 0 = turning right
+
+        # else:
+        #     self.vel[:] = vel_msg.linear.x
+        #     vel_array = Float64MultiArray(data=self.vel)
+        #     self.pub_vel_.publish(vel_array)
+        #     self.vel[:] = 0
+
 
         if joy_msg.linear.x != 0 or joy_msg.angular.z != 0:
             steer_msg = joy_msg.angular.z
         else:
             steer_msg = vel_msg.angular.z
 
-        if np.abs(steer_msg) > 0.650:  # 40 degrees in radians (Steering limit)
-            steer_msg = float(np.sign(steer_msg) * 0.65)
+        if np.abs(steer_msg) > 0.60:  # 40 degrees in radians (Steering limit)
+            steer_msg = float(np.sign(steer_msg) * 0.6)
         if steer_msg != self.steer_msg_prev:
             self.send_steer_goal(steer_msg,self.steer_pos_prev)
 
@@ -110,9 +171,9 @@ class HunterSEControlNode(Node):
         #     steer_msg = vel_msg.angular.z
 
         self.steer_pos_prev = [
-            float(joint_positions[0]), float(joint_positions[1])] # FR, FL
+            float(joint_positions[0]), float(joint_positions[2]), float(joint_positions[1])] # FR, FL, CENT
         if np.abs(np.sum(self.steer_pos_prev)) < 0.04:
-            self.steer_pos_prev = [0.0, 0.0]
+            self.steer_pos_prev = [0.0, 0.0, 0.0]
 
         # if np.abs(steer_msg) > 0.650:  # 40 degrees in radians (Steering limit)
         #     steer_msg = float(np.sign(steer_msg) * 0.65)
@@ -129,7 +190,7 @@ class HunterSEControlNode(Node):
         goal_msg = FollowJointTrajectory.Goal()
 
         # Creating timing normalizer for duration of movement
-        norm_coeff = np.abs(steer_msg-self.steer_msg_prev) / 0.650
+        norm_coeff = np.abs(steer_msg-self.steer_msg_prev) / 0.600
         steer_time = norm_coeff * 0.5  # 0.5 seconds to move from straight to max turn
         self.steer_msg_prev = steer_msg
 
@@ -145,12 +206,12 @@ class HunterSEControlNode(Node):
 
         if steer_msg > 0:
             self.steer_pos = [self.theta_in(
-                steer_msg), self.theta_out(steer_msg)]
+                steer_msg), self.theta_out(steer_msg), steer_msg]
         if steer_msg < 0:
             self.steer_pos = [self.theta_out(
-                steer_msg), self.theta_in(steer_msg)]
+                steer_msg), self.theta_in(steer_msg), steer_msg]
         if steer_msg == 0:
-            self.steer_pos = [0.0, 0.0]
+            self.steer_pos = [0.0, 0.0, 0.0]
 
         point2.positions = self.steer_pos
         points = [point1, point2]
@@ -158,7 +219,7 @@ class HunterSEControlNode(Node):
         goal_msg.goal_time_tolerance = Duration(
             seconds=1, nanoseconds=0).to_msg()
         goal_msg.trajectory.joint_names = [
-            'front_right_steer_joint', 'front_left_steer_joint']
+            'front_right_steer_joint', 'front_left_steer_joint', 'center_steer_joint']
         goal_msg.trajectory.points = points
         self._action_steer_client.wait_for_server()
         self._send_steer_goal_future = self._action_steer_client.send_goal_async(
@@ -182,7 +243,7 @@ class JoySubscriberNode(Node):
         super().__init__('joy_subscriber')
         self.subscription_ = self.create_subscription(
             Joy,
-            'joy',
+            'hunter_se/joy',
             self.listener_callback,
             10
         )
@@ -192,14 +253,14 @@ class JoySubscriberNode(Node):
         global joy_msg
         
         joy_msg.linear.x = data.axes[1]*5
-        joy_msg.angular.z = data.axes[3]*0.650
+        joy_msg.angular.z = data.axes[3]*0.600
 
 class CmdVelSubscriberNode(Node):
     def __init__(self):
         super().__init__('cmd_vel_subscriber')
         self.cmdVel_subscription_ = self.create_subscription(
             Twist,
-            'cmd_vel',
+            'hunter_se/cmd_vel',
             self.cmdVel_callback,
             10)
 

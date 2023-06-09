@@ -78,7 +78,7 @@ def generate_launch_description():
     spawn_hunter_se_node = Node(
         package='hunter_se_description',
         executable='spawn_hunter_se',
-                namespace='/hunter_se',
+        namespace='/hunter_se',
         arguments=[robot_description],
         output='screen'
     )
@@ -109,7 +109,8 @@ def generate_launch_description():
     joy_node = Node(
         package='joy',
         executable='joy_node',
-        name='joy_node'
+        name='joy_node',
+        namespace='hunter_se'
     )
 
     # Launching Controllers
@@ -127,6 +128,6 @@ def generate_launch_description():
 
     # Control Robot
     ld.add_action(joy_node)
-    ld.add_action(ackermann_control_node)
+    #ld.add_action(ackermann_control_node)
 
     return ld
