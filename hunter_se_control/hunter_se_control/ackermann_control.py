@@ -34,8 +34,6 @@ class HunterSEControlNode(Node):
         #Initializing messages:
         joy_msg.linear.x = float(0)
         joy_msg.angular.z = float(0)
-
-
         self.vel_msg_prev = 0.0
         self.steer_msg_prev = 0.0
         self.steer_pos = np.array([0, 0, 0], float)  # FR, FL, CENT
@@ -74,6 +72,7 @@ class HunterSEControlNode(Node):
         :return: ackermann steering angle of inner wheel theta_out
         """
         return float(math.atan((self.base_x_size*math.tan(delta_ack))/(self.base_x_size - 0.5*self.base_y_size*math.tan(delta_ack))))
+    
     def vel_out(self,delta_ack, cmd_vel):
         """
         Determines the outer wheel velocities (front and rear) for a no slip ackermann system
@@ -97,6 +96,7 @@ class HunterSEControlNode(Node):
         vel_rear_in = cmd_vel * (self.wheelbase*math.tan(math.pi/2 - self.theta_in(delta_ack)))/ R_icr
         vel_front_in = cmd_vel * (math.sqrt((self.wheelbase*math.tan(math.pi/2-self.theta_in(delta_ack)))**2 + self.wheelbase**2))/R_icr
         return vel_rear_in, vel_front_in
+    
     def timer_callback(self):
         global vel_msg
         global joy_msg
@@ -131,22 +131,6 @@ class HunterSEControlNode(Node):
             self.pub_vel_.publish(vel_array)
             self.vel[:] = 0
 
-
-            
-            # RR, RL, FR, FL
-
-
-            # FR, FL, CENT
-
-            # GREATER THAN 0 = turning right
-
-        # else:
-        #     self.vel[:] = vel_msg.linear.x
-        #     vel_array = Float64MultiArray(data=self.vel)
-        #     self.pub_vel_.publish(vel_array)
-        #     self.vel[:] = 0
-
-
         if joy_msg.linear.x != 0 or joy_msg.angular.z != 0:
             steer_msg = joy_msg.angular.z
         else:
@@ -163,20 +147,10 @@ class HunterSEControlNode(Node):
 
         joint_positions = msg.position
 
-        # if joy_msg.linear.x != 0 or joy_msg.angular.z != 0:
-        #     steer_msg = joy_msg.angular.z
-        # else:
-        #     steer_msg = vel_msg.angular.z
-
         self.steer_pos_prev = [
             float(joint_positions[0]), float(joint_positions[2]), float(joint_positions[1])] # FR, FL, CENT
         if np.abs(np.sum(self.steer_pos_prev)) < 0.04:
             self.steer_pos_prev = [0.0, 0.0, 0.0]
-
-        # if np.abs(steer_msg) > 0.650:  # 40 degrees in radians (Steering limit)
-        #     steer_msg = float(np.sign(steer_msg) * 0.65)
-        # if steer_msg != self.steer_msg_prev:
-        #     self.send_steer_goal(steer_msg,self.steer_pos_prev)
 
     def send_steer_goal(self, steer_msg, steer_pos_prev):
         '''
