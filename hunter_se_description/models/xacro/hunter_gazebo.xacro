@@ -44,7 +44,7 @@
                 <rear_right_joint>rear_right_wheel_joint</rear_right_joint>
                 <left_steering_joint>front_left_steer_joint</left_steering_joint>
                 <right_steering_joint>front_right_steer_joint</right_steering_joint>
-                <steering_wheel_joint>center_steer_joint</steering_wheel_joint>
+                <!-- <steering_wheel_joint>center_steer_joint</steering_wheel_joint> -->
                 <max_steer>0.690</max_steer>
                 <max_speed>15</max_speed>
 
@@ -59,7 +59,7 @@
                 <publish_odom_tf>false</publish_odom_tf>
                 <publish_wheel_tf>false</publish_wheel_tf>
                 <publish_distance>false</publish_distance>
-                <odometry_frame>wheel_odom</odometry_frame>
+                <odometry_frame>odom</odometry_frame>
                 <robot_base_frame>base_link</robot_base_frame>
             </plugin>
         </gazebo>
@@ -75,6 +75,7 @@
             <sensor name="imu_sensor" type="imu">
                 <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
                     <ros>
+                        <namespace>${robot_namespace}</namespace>
                         <remapping>~/out:=imu</remapping>
                     </ros>
                 </plugin>

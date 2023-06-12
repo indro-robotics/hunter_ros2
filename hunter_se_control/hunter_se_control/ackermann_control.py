@@ -23,7 +23,7 @@ class HunterSEControlNode(Node):
         super().__init__('hunter_se_control')
 
         # Declaring variables
-        timer_period = 0.01
+        timer_period = 0.001
 
         #Declasring variables
         self.base_x_size = 0.800
@@ -36,9 +36,10 @@ class HunterSEControlNode(Node):
         joy_msg.angular.z = float(0)
         self.vel_msg_prev = 0.0
         self.steer_msg_prev = 0.0
-        self.steer_pos = np.array([0, 0, 0], float)  # FR, FL, CENT
+        self.steer_msg = 0.0
+        self.steer_pos = np.array([0, 0],float)#, 0], float)  # FR, FL, CENT
         self.vel = np.array([0, 0, 0, 0], float)  # RR, RL, FR, FL
-        self.steer_pos_prev = np.array([0, 0, 0], float)  # FR, FL, CENT
+        self.steer_pos_prev = np.array([0, 0], float)#, 0], float)  # FR, FL, CENT
 
         # Creating Publishers
         self.pub_vel_ = self.create_publisher(
@@ -101,45 +102,50 @@ class HunterSEControlNode(Node):
         global vel_msg
         global joy_msg
         if joy_msg.linear.x != 0 and joy_msg.angular.z == 0:
-            steer_msg = joy_msg.angular.z
+            self.steer_msg = joy_msg.angular.z
             self.vel[:] = joy_msg.linear.x
             vel_array = Float64MultiArray(data=self.vel)
             self.pub_vel_.publish(vel_array)
             self.vel[:] = 0
             print('The wheel velocities are as follows:\n\nFL_Wheel: {:2.4}    FR_Wheel: {:2.4}\nBL_Wheel: {:2.4}    BR_Wheel: {:2.4}'.format(self.vel[3], self.vel[2], self.vel[1], self.vel[0]))
         if joy_msg.linear.x != 0 and joy_msg.angular.z != 0:
-            steer_msg = joy_msg.angular.z
-            vel_rear_in, vel_front_in = self.vel_in(steer_msg, joy_msg.linear.x)
-            vel_rear_out, vel_front_out = self.vel_out(steer_msg, joy_msg.linear.x)
-            if steer_msg > 0: #Turning right
+            self.steer_msg = joy_msg.angular.z
+            vel_rear_in, vel_front_in = self.vel_in(self.steer_msg, joy_msg.linear.x)
+            vel_rear_out, vel_front_out = self.vel_out(self.steer_msg, joy_msg.linear.x)
+            if self.steer_msg > 0: #Turning right
                 self.vel[0] = vel_rear_out
                 self.vel[1] = vel_rear_in
-                self.vel[3] = 0.90 * vel_front_in
-                self.vel[2] = 0.90 * vel_front_out
-            if steer_msg < 0:
+                self.vel[3] = 0.80 * vel_front_in
+                self.vel[2] = 0.80 * vel_front_out
+            if self.steer_msg < 0:
                 self.vel[0] = vel_rear_out
                 self.vel[1] = vel_rear_in
-                self.vel[3] = -0.90 * vel_front_in
-                self.vel[2] = -0.90 * vel_front_out
+                self.vel[3] = -0.80 * vel_front_in
+                self.vel[2] = -0.80 * vel_front_out
             print('The wheel velocities are as follows:\n\nFL_Wheel: {:2.4}    FR_Wheel: {:2.4}\nBL_Wheel: {:2.4}    BR_Wheel: {:2.4}'.format(self.vel[3], self.vel[2], self.vel[1], self.vel[0]))
             vel_array = Float64MultiArray(data=self.vel)
             self.pub_vel_.publish(vel_array)
             self.vel[:] = 0
-        if joy_msg.linear.x == 0:
-            self.vel[:] = joy_msg.linear.x
+        if joy_msg.angular.z != 0 and joy_msg.linear.x == 0:
+            self.steer_msg = joy_msg.angular.z
+            self.vel[:] = 0
             vel_array = Float64MultiArray(data=self.vel)
             self.pub_vel_.publish(vel_array)
             self.vel[:] = 0
+            print('The wheel velocities are as follows:\n\nFL_Wheel: {:2.4}    FR_Wheel: {:2.4}\nBL_Wheel: {:2.4}    BR_Wheel: {:2.4}'.format(self.vel[3], self.vel[2], self.vel[1], self.vel[0]))
+        
+        if joy_msg.angular.z == 0 and joy_msg.linear.x == 0:
+            self.steer_msg = joy_msg.angular.z
+            self.vel[:] = 0
+            vel_array = Float64MultiArray(data=self.vel)
+            self.pub_vel_.publish(vel_array)
+            self.vel[:] = 0
+            print('The wheel velocities are as follows:\n\nFL_Wheel: {:2.4}    FR_Wheel: {:2.4}\nBL_Wheel: {:2.4}    BR_Wheel: {:2.4}'.format(self.vel[3], self.vel[2], self.vel[1], self.vel[0]))
 
-        if joy_msg.linear.x != 0 or joy_msg.angular.z != 0:
-            steer_msg = joy_msg.angular.z
-        else:
-            steer_msg = vel_msg.angular.z
-
-        if np.abs(steer_msg) > 0.60:  # 40 degrees in radians (Steering limit)
-            steer_msg = float(np.sign(steer_msg) * 0.6)
-        if steer_msg != self.steer_msg_prev:
-            self.send_steer_goal(steer_msg,self.steer_pos_prev)
+        if np.abs(self.steer_msg) > 0.60:  # 40 degrees in radians (Steering limit)
+            self.steer_msg = float(np.sign(self.steer_msg) * 0.6)
+        if self.steer_msg != self.steer_msg_prev:
+            self.send_steer_goal(self.steer_msg,self.steer_pos_prev)
 
     def jointStates_callback(self, msg):
         global vel_msg
@@ -148,9 +154,9 @@ class HunterSEControlNode(Node):
         joint_positions = msg.position
 
         self.steer_pos_prev = [
-            float(joint_positions[0]), float(joint_positions[2]), float(joint_positions[1])] # FR, FL, CENT
+            float(joint_positions[0]), float(joint_positions[1])]#, float(joint_positions[1])] # FR, FL, CENT
         if np.abs(np.sum(self.steer_pos_prev)) < 0.04:
-            self.steer_pos_prev = [0.0, 0.0, 0.0]
+            self.steer_pos_prev = [0.0, 0.0]#, 0.0]
 
     def send_steer_goal(self, steer_msg, steer_pos_prev):
         '''
@@ -178,12 +184,12 @@ class HunterSEControlNode(Node):
 
         if steer_msg > 0:
             self.steer_pos = [self.theta_in(
-                steer_msg), self.theta_out(steer_msg), steer_msg]
+                steer_msg), self.theta_out(steer_msg)]#, steer_msg]
         if steer_msg < 0:
             self.steer_pos = [self.theta_out(
-                steer_msg), self.theta_in(steer_msg), steer_msg]
+                steer_msg), self.theta_in(steer_msg)]#, steer_msg]
         if steer_msg == 0:
-            self.steer_pos = [0.0, 0.0, 0.0]
+            self.steer_pos = [0.0, 0.0]#, 0.0]
 
         point2.positions = self.steer_pos
         points = [point1, point2]
@@ -191,7 +197,7 @@ class HunterSEControlNode(Node):
         goal_msg.goal_time_tolerance = Duration(
             seconds=1, nanoseconds=0).to_msg()
         goal_msg.trajectory.joint_names = [
-            'front_right_steer_joint', 'front_left_steer_joint', 'center_steer_joint']
+            'front_right_steer_joint', 'front_left_steer_joint']#, 'center_steer_joint']
         goal_msg.trajectory.points = points
         self._action_steer_client.wait_for_server()
         self._send_steer_goal_future = self._action_steer_client.send_goal_async(

@@ -17,18 +17,10 @@
                 </geometry>
             </collision>
             <inertial>
-                <mass value="1.0" />
+                <mass value="2.5" />
                 <origin xyz="0 0 0" />
                 <inertia ixx="0.006864" ixy="0.0" ixz="0.0" iyy="0.012106" iyz="0.0" izz="0.006864" />
             </inertial>
-            <surface>
-                <friction>
-                    <ode>
-                        <mu>1.0</mu>
-                        <mu2>1.0</mu2>
-                    </ode>
-                </friction>
-            </surface>
         </link>
         <joint name="${name}_wheel_joint" type="continuous">
             <parent link="base_link" />
@@ -38,11 +30,13 @@
             <axis xyz="0 1 0" />
         </joint>
         <gazebo reference="${name}_wheel_link">
-            <mu1 value="1.0" />
+            <mu1 value="2.0" />
             <mu2 value="1.0" />
             <kp value="10000000.0" />
             <kd value="1.0" />
-            <fdir1 value="0 1 0" />
+            <fdir1 value="1 0 0" />
+            <slip1>0</slip1>
+            <slip2>0</slip2>
         </gazebo>
     </xacro:macro>
 </robot>
